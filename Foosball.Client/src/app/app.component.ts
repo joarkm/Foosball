@@ -866,9 +866,9 @@ export class AppComponent implements OnInit {
   public playerFunFactHistoryCtrl = new FormControl('');
   public playerHistory: History[] = [];
   public playerFunFactHistory: any;
+  public players: Player[] = [];
 
   private pointPot = 30;
-  private players: Player[] = [];
   private BASE_ELO = 1500;
 
   ngOnInit(): void {
