@@ -6,12 +6,74 @@
     </div>
   </div>
   <div class="elo__history">
-    <select [formControl]="history">
+    <select [formControl]="playerMatchHistoryCtrl">
       <option value="">Vis historikk for...</option>
-      <option *ngFor="let player of players" [value]="player.name">{{ player.name }}</option>            
+      <option *ngFor="let player of players" [value]="player.name">{{ player.name }}</option>
     </select>
     <ul *ngIf="playerHistory" class="elo__list">
       <li *ngFor="let history of playerHistory"><span class="elo__historic-rating" [ngClass]="{'elo__historic-rating--won': history.won}">{{ history.rating | number:'1.0-0':'nb' }}</span> (Win probability: {{ (history.probability * 100) | number:'1.2-2':'nb' }} %) (Diff: {{ history.diff | number:'1.0-0':'nb' }})</li>
     </ul>
   </div>
+
+  <div class="elo-history">
+    <select [formControl]="playerFunFactHistoryCtrl">
+        <option value="">Show fun fact history for...</option>
+        <option *ngFor="let player of players" [value]="player.name">{{ player.name }}</option>
+    </select>
+    <!-- <pre *ngIf="playerFunFactHistory">{{ playerFunFactHistory | json }}</pre> -->
+    <ng-container *ngIf="playerFunFactHistory">
+      <div *ngIf="playerFunFactHistory.sureWins" class="elo__fun-fact">
+        <h3>Kamper {{ playerFunFactHistoryCtrl.value }} bør vinne</h3>
+        <p>Kamper hvor sannsynligheten for å vinne var over 80 %</p>
+        
+        <div class="elo__fun-fact__stats">
+          <label for="wins">Seiere:</label>
+          <p>{{ playerFunFactHistory.sureWins.wins }}</p>
+
+          <label for="losses">Tap:</label>
+          <p>{{ playerFunFactHistory.sureWins.losses }}</p>
+
+          <label for="winLossRatio">Ratio seiere/tap:</label>
+          <p *ngIf="isFinite(playerFunFactHistory.sureWins.winLossRatio); else ShowNA">
+              {{ playerFunFactHistory.sureWins.winLossRatio | number:'1.0-0':'nb'}}:1
+          </p>
+          <ng-template #ShowNA>
+            <p>—</p>
+          </ng-template>
+
+          <label for="total">Kamper totalt</label>
+          <p>{{ playerFunFactHistory.sureWins.total }}</p>
+        </div>
+        
+        <p class="elo__fun-fact__info">I kampene brukt for utregningen hadde {{ playerFunFactHistoryCtrl.value }} i snitt {{ playerFunFactHistory.sureWins.averageProbability | percent:'1.0-1':'nb' }} i sannsynlighet for å vinne</p>
+      </div>
+
+      <div *ngIf="playerFunFactHistory.sureLosses" class="elo__fun-fact">
+          <h3>Kamper {{ playerFunFactHistoryCtrl.value }} trolig ikke vinner</h3>
+          <p>Kamper hvor sannsynligheten for å vinne var under 20 %</p>
+          
+          <div class="elo__fun-fact__stats">
+            <label for="wins">Seiere:</label>
+            <p>{{ playerFunFactHistory.sureLosses.wins }}</p>
+  
+            <label for="losses">Tap:</label>
+            <p>{{ playerFunFactHistory.sureLosses.losses }}</p>
+  
+            <label for="winLossRatio">Ratio seiere/tap:</label>
+            <p *ngIf="isFinite(playerFunFactHistory.sureLosses.winLossRatio); else ShowNA">
+                1:{{ playerFunFactHistory.sureLosses.winLossRatio | number:'1.0-0':'nb'}}
+            </p>
+            <ng-template #ShowNA>
+              <p>—</p>
+            </ng-template>
+  
+            <label for="total">Kamper totalt</label>
+            <p>{{ playerFunFactHistory.sureLosses.total }}</p>
+          </div>
+          
+          <p class="elo__fun-fact__info">I kampene brukt for utregningen hadde {{ playerFunFactHistoryCtrl.value }} i snitt {{ playerFunFactHistory.sureLosses.averageProbability | percent:'1.0-1':'nb' }} i sannsynlighet for å vinne</p>
+        </div>
+    </ng-container>
+  </div>
+
 </section>

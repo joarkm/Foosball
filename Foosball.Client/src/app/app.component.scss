@@ -19,4 +19,15 @@
       color: green;
     }    
   }
+  
+  &__fun-fact {
+    &__info {
+      font-style: italic;
+    }
+    &__stats {
+      align-items: center;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(50px, 100px));
+    }
+  }
 }

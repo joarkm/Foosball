@@ -842,6 +842,16 @@ interface Player {
   name: string;
   rating: number;
   history: History[];
+  funFacts?: {
+    sureWins?: {
+      wins: number,
+      losses: number,
+      winLossRatio: number,
+      total: number,
+      averageProbability: number
+    },
+    sureLosses?: any
+  };
   matches: number;
   wins: number;
 }
@@ -852,15 +862,17 @@ interface Player {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  public history = new FormControl('');
+  public playerMatchHistoryCtrl = new FormControl('');
+  public playerFunFactHistoryCtrl = new FormControl('');
   public playerHistory: History[] = [];
+  public playerFunFactHistory: any;
 
   private pointPot = 30;
   private players: Player[] = [];
   private BASE_ELO = 1500;
 
   ngOnInit(): void {
-    this.history.valueChanges.subscribe(val => {
+    this.playerMatchHistoryCtrl.valueChanges.subscribe(val => {
       if (!val) {
         this.playerHistory = [];
 
@@ -868,6 +880,86 @@ export class AppComponent implements OnInit {
       }
       this.playerHistory = [...this.players.find(p => p.name === val).history];
     });
+    this.playerFunFactHistoryCtrl.valueChanges.subscribe(playerName => {
+      this.playerFunFactHistory = this.players.find(p => p.name === playerName).funFacts;
+    });
+    this.initHistory();
+    this.calculateFunFacts();
+  }
+
+  public isFinite(num: number): boolean {
+    return isFinite(num);
+  }
+
+  private getRatio(ratio: number): string {
+    return isFinite(ratio) ? '1:1' : `${ratio}:1`;
+  }
+
+  private calculateFunFacts(): void {
+    const SURE_WIN_MIN = 0.8;
+    const SURE_LOSS_MAX = 0.2;
+
+    // Calculate stats about matches the players should have won
+    for (let i = 0, player = this.players[i]; i < this.players.length; ++i, player = this.players[i]) {
+    // for (const player of this.players) {
+      const { history: playerHistory } = player;
+      //#region Calculate sure win matches stats
+      const sureWinMatches = player.history.filter(match => match.probability >= SURE_WIN_MIN);
+      let wins = 0, losses = 0, probabilityAcc = 0;
+      let matchTotal = sureWinMatches.length;
+      sureWinMatches.forEach(swMatch => {
+        if (swMatch.won) {
+          wins++;
+        } else {
+          losses++;
+        }
+        probabilityAcc += swMatch.probability;
+      });
+      let winLossRatio = wins / losses;
+      let averageProbability = probabilityAcc / matchTotal;
+      const sureWinStats = {
+        wins,
+        losses,
+        winLossRatio,
+        total: matchTotal,
+        averageProbability
+      };
+      if (!this.players[i].funFacts) {
+        this.players[i].funFacts = {
+          sureWins: sureWinStats
+        };
+      } else {
+        this.players[i].funFacts.sureWins = sureWinStats;
+      }
+      //#endregion
+
+      //#region Calculate sure loss matches stats
+      const sureLossMatches = player.history.filter(match => match.probability <= SURE_LOSS_MAX);
+      wins = 0, losses = 0, probabilityAcc = 0;
+      matchTotal = sureLossMatches.length;
+      sureLossMatches.forEach(slMatch => {
+        if (slMatch.won) {
+          wins++;
+        } else {
+          losses++;
+        }
+        probabilityAcc += slMatch.probability;
+      });
+      winLossRatio = losses / wins;
+      averageProbability = probabilityAcc / matchTotal;
+      const sureLossStats = {
+        wins,
+        losses,
+        winLossRatio,
+        total: matchTotal,
+        averageProbability
+      };
+      this.players[i].funFacts.sureLosses = sureLossStats;
+      //#endregion
+    }
+  }
+
+  private initHistory(): void {
     for (const match of matches) {
       let p1: Player;
       let p2: Player;
@@ -896,6 +988,7 @@ export class AppComponent implements OnInit {
           case 1:
             player.wins += 1;
             p2 = player;
+            break;
           case 2:
             p3 = player;
             break;
