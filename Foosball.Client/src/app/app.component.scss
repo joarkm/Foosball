@@ -1,0 +1,22 @@
+.elo {
+  display: flex;
+  flex-direction: row;
+
+  &__history {
+    margin-left: 32px;
+  }
+
+  &__list {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+  }
+
+  &__historic-rating {
+    color: red;
+
+    &--won {
+      color: green;
+    }    
+  }
+}
