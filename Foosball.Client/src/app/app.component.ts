@@ -828,7 +828,35 @@ const matches: string[][] = [
   ['Trond', 'Morten', 'Svein Erik', 'Magnus'],
   ['Vegard', 'Sverre', 'Joar', 'Arnfinn'],
   ['Kjetil L', 'Morten', 'Are', 'Magnus'],
-  ['Sverre', 'Vegard', 'Ole Kristian', 'Trond']
+  ['Sverre', 'Vegard', 'Ole Kristian', 'Trond',],
+  ['Trond','Joar','Svein Erik','Sverre'],
+  // Begin 09.12.2019 v
+  ['Kjetil L','Arnfinn','Are','Vegard'],
+  ['Kjetil L','Svein Erik','Are','Joar'],
+  ['Kjetil L','Sverre','Are','Morten'],
+  ['Svein Erik','Joar','Vegard','Are'],
+  ['Vegard','Trond','Are','Joar'],
+  ['Are','Sverre','Svein Erik','Kjetil L'],
+  ['Kjetil L','Arnfinn','Sverre','Svein Erik'],
+  ['Vegard','Joar','Morten','Trond'],
+  ['Kjetil L','Arnfinn','Vegard','Sverre'],
+  ['Kjetil L','Svein Erik','Morten','Arnfinn'],
+  ['Ole Kristian','Trond','Are','Sverre'],
+  ['Vegard','Morten','Svein Erik','Sverre'],
+  ['Joar','Svein Erik','Arnfinn','Are'],
+  ['Kjetil L','Svein Erik','Magnus','Trond'],
+  ['Vegard','Arnfinn','Morten','Are'],
+  ['Trond','Vegard','Kjetil L','Svein Erik'],
+  ['Are','Morten','Magnus','Arnfinn'],
+  ['Are','Morten','Svein Erik','Arnfinn'],
+  ['Vegard','Sverre','Arnfinn','Joar'],
+  ['Vegard','Magnus','Morten','Joar'],
+  ['Are','Joar','Svein Erik','Morten'],
+  ['Svein Erik','Sverre','Joar','Arnfinn'],
+  ['Vegard','Are','Joar','Magnus'],
+  ['Trond','Sverre','Vegard','Joar'],
+  ['Vegard','Are','Svein Erik','Magnus']
+  // End 17.12.2019 ^
 ];
 
 interface History {
