@@ -1,0 +1,35 @@
+// Add quotes to the 3 first players
+match: (.*?)(,)
+replace: '$1',
+
+// Handle last players with double names (done before next section)
+match: (,?)((\w+?)(( \w+)))$
+replace: ,'$3$4'
+
+// Handle the last player
+match: (,?)(.\w+?)$
+replace: ,'$2'
+
+// Add array opening square
+match: ^(.{1})
+replace: [$1
+
+// Add array closing square
+match: (.{1})$
+replace: $1],
+
+
+
+// example conversion
+
+Trond,Morten,Svein Erik,Magnus
+Vegard,Sverre,Joar,Arnfinn
+Kjetil L,Morten,Are,Magnus
+Sverre,Vegard,Ole Kristian,Trond
+
+..>
+
+['Trond','Morten','Svein Erik','Magnus'],
+['Vegard','Sverre','Joar','Arnfinn'],
+['Kjetil L','Morten','Are','Magnus'],
+['Sverre','Vegard','Ole Kristian','Trond'],
