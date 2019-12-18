@@ -1,19 +1,22 @@
+<button (click)="test(4);">Simulate 4 random matches (See console for details)</button><br><br>
+<button (click)="test(20);">Simulate 20 random matches (See console for details)</button><br><br>
+<button (click)="test(80);">Simulate 80 random matches (See console for details)</button>
 <p><i>Disclaimer: Some rounding has occurred when presenting the values</i></p>
 <section class="elo">
   <div class="elo__players">
     <div *ngFor="let player of players">
-      <b>{{ player.name }}</b> ({{ player.rating | number:'1.0-0':'nb' }} ELO - {{ player.matches }} matches / {{ player.wins }} wins)<br><br>
+      <b>{{ player.name }}</b> ({{ player.rating | number:'1.0-0':'nb' }} ELO - {{ player.matches }} matches / {{ player.wins }} wins [{{ ((player.wins * 100) / player.matches) | number:'1.2-2':'nb' }} % win-rate])<br><br>
     </div>
   </div>
   <div class="elo__history">
-    <select [formControl]="playerMatchHistoryCtrl">
+    <select [formControl]="historikkCtrl">
       <option value="">Vis historikk for...</option>
-      <option *ngFor="let player of players" [value]="player.name">{{ player.name }}</option>
+      <option *ngFor="let player of players" [value]="player.name">{{ player.name }}</option>            
     </select>
     <ul *ngIf="playerHistory" class="elo__list">
-      <li *ngFor="let history of playerHistory"><span class="elo__historic-rating" [ngClass]="{'elo__historic-rating--won': history.won}">{{ history.rating | number:'1.0-0':'nb' }}</span> (Win probability: {{ (history.probability * 100) | number:'1.2-2':'nb' }} %) (Diff: {{ history.diff | number:'1.0-0':'nb' }})</li>
+      <li *ngFor="let history of playerHistory"><span class="elo__historic-rating" [ngClass]="{'elo__historic-rating--won': history.won}">{{ history.rating | number:'1.0-0':'nb' }}</span> (Win probability: {{ (history.probability) | number:'1.2-2':'nb' }} %) (Diff: {{ history.diff | number:'1.0-0':'nb' }})</li>
     </ul>
-  </div>
+  </div>  
 
   <div class="elo-history">
     <select [formControl]="playerFunFactHistoryCtrl">
@@ -75,5 +78,6 @@
         </div>
     </ng-container>
   </div>
+
 
 </section>

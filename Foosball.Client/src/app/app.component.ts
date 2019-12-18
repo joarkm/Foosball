@@ -828,35 +828,7 @@ const matches: string[][] = [
   ['Trond', 'Morten', 'Svein Erik', 'Magnus'],
   ['Vegard', 'Sverre', 'Joar', 'Arnfinn'],
   ['Kjetil L', 'Morten', 'Are', 'Magnus'],
-  ['Sverre', 'Vegard', 'Ole Kristian', 'Trond',],
-  ['Trond','Joar','Svein Erik','Sverre'],
-  // Begin 09.12.2019 v
-  ['Kjetil L','Arnfinn','Are','Vegard'],
-  ['Kjetil L','Svein Erik','Are','Joar'],
-  ['Kjetil L','Sverre','Are','Morten'],
-  ['Svein Erik','Joar','Vegard','Are'],
-  ['Vegard','Trond','Are','Joar'],
-  ['Are','Sverre','Svein Erik','Kjetil L'],
-  ['Kjetil L','Arnfinn','Sverre','Svein Erik'],
-  ['Vegard','Joar','Morten','Trond'],
-  ['Kjetil L','Arnfinn','Vegard','Sverre'],
-  ['Kjetil L','Svein Erik','Morten','Arnfinn'],
-  ['Ole Kristian','Trond','Are','Sverre'],
-  ['Vegard','Morten','Svein Erik','Sverre'],
-  ['Joar','Svein Erik','Arnfinn','Are'],
-  ['Kjetil L','Svein Erik','Magnus','Trond'],
-  ['Vegard','Arnfinn','Morten','Are'],
-  ['Trond','Vegard','Kjetil L','Svein Erik'],
-  ['Are','Morten','Magnus','Arnfinn'],
-  ['Are','Morten','Svein Erik','Arnfinn'],
-  ['Vegard','Sverre','Arnfinn','Joar'],
-  ['Vegard','Magnus','Morten','Joar'],
-  ['Are','Joar','Svein Erik','Morten'],
-  ['Svein Erik','Sverre','Joar','Arnfinn'],
-  ['Vegard','Are','Joar','Magnus'],
-  ['Trond','Sverre','Vegard','Joar'],
-  ['Vegard','Are','Svein Erik','Magnus']
-  // End 17.12.2019 ^
+  ['Sverre', 'Vegard', 'Ole Kristian', 'Trond']
 ];
 
 interface History {
@@ -870,18 +842,15 @@ interface Player {
   name: string;
   rating: number;
   history: History[];
-  funFacts?: {
-    sureWins?: {
-      wins: number,
-      losses: number,
-      winLossRatio: number,
-      total: number,
-      averageProbability: number
-    },
-    sureLosses?: any
-  };
   matches: number;
   wins: number;
+}
+
+interface Rating {
+  name: string;
+  rating: number;
+  probability: number;
+  won: boolean;
 }
 
 @Component({
@@ -890,23 +859,31 @@ interface Player {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  public playerMatchHistoryCtrl = new FormControl('');
+  public historikkCtrl = new FormControl('');
   public playerFunFactHistoryCtrl = new FormControl('');
-  public playerHistory: History[] = [];
   public playerFunFactHistory: any;
+  public playerHistory: History[] = [];
   public players: Player[] = [];
 
-  private pointPot = 30;
+  private pointPot = 20;
   private BASE_ELO = 1500;
+  private matchNum = 1;
+  private historyShownFor: Player;
+  private playersToIgnore: string[] = ['Geir Are', 'Tor Arne', 'Martin', 'Kjetil', 'Martin V'];
+
 
   ngOnInit(): void {
-    this.playerMatchHistoryCtrl.valueChanges.subscribe(val => {
+    this.historikkCtrl.valueChanges.subscribe(val => {
       if (!val) {
         this.playerHistory = [];
+        this.historyShownFor = null;
 
         return;
       }
-      this.playerHistory = [...this.players.find(p => p.name === val).history];
+      const p: Player = this.players.find(p => p.name === val);
+
+      this.playerHistory = [...p.history];
+      this.historyShownFor = p;
     });
     this.playerFunFactHistoryCtrl.valueChanges.subscribe(playerName => {
       this.playerFunFactHistory = this.players.find(p => p.name === playerName).funFacts;
@@ -929,7 +906,7 @@ export class AppComponent implements OnInit {
 
     // Calculate stats about matches the players should have won
     for (let i = 0, player = this.players[i]; i < this.players.length; ++i, player = this.players[i]) {
-    // for (const player of this.players) {
+      // for (const player of this.players) {
       const { history: playerHistory } = player;
       //#region Calculate sure win matches stats
       const sureWinMatches = player.history.filter(match => match.probability >= SURE_WIN_MIN);
@@ -995,61 +972,164 @@ export class AppComponent implements OnInit {
       let p4: Player;
 
       match.forEach((playerName, index) => {
-        let player: Player = this.players.find(p => p.name === playerName);
+        if (!this.playersToIgnore.length || this.playersToIgnore.indexOf(playerName) < 0) {
+          let player: Player = this.players.find(p => p.name === playerName);
 
-        if (!player) {
-          player = {
-            name: playerName,
-            rating: this.BASE_ELO,
-            history: [{rating: this.BASE_ELO, probability: 1, diff: this.BASE_ELO, won: true}],
-            matches: 0,
-            wins: 0
-          };
-          this.players.push(player);
-        }
-        player.matches += 1;
-        switch (index) {
-          case 0:
-            player.wins += 1;
-            p1 = player;
-            break;
-          case 1:
-            player.wins += 1;
-            p2 = player;
-            break;
-          case 2:
-            p3 = player;
-            break;
-          case 3:
-            p4 = player;
-            break;
+          if (!player) {
+            player = {
+              name: playerName,
+              rating: this.BASE_ELO,
+              history: [{ rating: this.BASE_ELO, probability: 100, diff: this.BASE_ELO, won: true }],
+              matches: 0,
+              wins: 0
+            };
+            this.players.push(player);
+          }
+          player.matches += 1;
+          switch (index) {
+            case 0:
+              player.wins += 1;
+              p1 = player;
+              break;
+            case 1:
+              player.wins += 1;
+              p2 = player;
+              break;
+            case 2:
+              p3 = player;
+              break;
+            case 3:
+              p4 = player;
+              break;
+          }
         }
       });
-      const p1PrevRating = p1.rating;
-      const p2PrevRating = p2.rating;
-      const p3PrevRating = p3.rating;
-      const p4PrevRating = p4.rating;
-      p1.rating = this.calculateELO(p1.rating, ((p3.rating + p4.rating) - p2.rating), true);
-      p2.rating = this.calculateELO(p2.rating, ((p3.rating + p4.rating) - p1.rating), true);
-      p3.rating = this.calculateELO(p3.rating, ((p1.rating + p2.rating) - p4.rating), false);
-      p4.rating = this.calculateELO(p4.rating, ((p1.rating + p2.rating) - p3.rating), false);
-      p1.history.push({rating: p1.rating, probability: this.calculateProbability(((p3.rating + p4.rating) - p2.rating), p1.rating), diff: p1.rating - p1PrevRating, won: true});
-      p2.history.push({rating: p2.rating, probability: this.calculateProbability(((p3.rating + p4.rating) - p1.rating), p2.rating), diff: p2.rating - p2PrevRating, won: true});
-      p3.history.push({rating: p3.rating, probability: this.calculateProbability(((p1.rating + p2.rating) - p4.rating), p3.rating), diff: p3.rating - p3PrevRating});
-      p4.history.push({rating: p4.rating, probability: this.calculateProbability(((p1.rating + p2.rating) - p3.rating), p4.rating), diff: p4.rating - p4PrevRating});
+      if (p1 && p2 && p3 && p4) {
+        const players: Player[] = [p1, p2, p3, p4];
+        let ratings: Rating[];
+        ratings = this._test(players[0], players[1], players[2], players[3], false, true);
+        ratings.forEach(r => {
+          const p: Player = players.find(p => p.name === r.name);
+          p.history.unshift({
+            rating: r.rating,
+            probability: r.probability,
+            diff: r.rating - p.rating,
+            won: r.won
+          });
+          p.rating = r.rating;
+        });
+      }
     }
     this.players.sort((a, b) => (a.rating > b.rating) ? -1 : 1);
-    for (const player of this.players) {
-      player.history = player.history.reverse();
+  }
+
+  public test(amount: number): void {
+    for (let i = 0; i < amount; i++) {
+      const indices: number[] = [];
+      while (indices.length < 4) {
+        const index: number = Math.floor(Math.random() * this.players.length);
+
+        if (indices.indexOf(index) === -1 && this.playersToIgnore.indexOf(this.players[index].name) < 0) {
+          indices.push(index);
+        }
+      }
+      const p1: Player = this.players[indices[0]];
+      const p2: Player = this.players[indices[1]];
+      const p3: Player = this.players[indices[2]];
+      const p4: Player = this.players[indices[3]];
+      const players: Player[] = [p1, p2, p3, p4];
+      let ratings: Rating[];
+      // p1.rating = 1500;
+      // p2.rating = 1500;
+      // p3.rating = 1500;
+      // p4.rating = 1500;
+      players.sort((a, b) => {
+        if (a.rating === b.rating) {
+          return 0;
+        }
+        return a.rating > b.rating ? -1 : 1;
+      });
+      ratings = this._test(players[0], players[3], players[1], players[2], true);
+      ratings.forEach(r => {
+        const p: Player = players.find(p => p.name === r.name);
+        p.history.unshift({
+          rating: r.rating,
+          probability: r.probability,
+          diff: r.rating - p.rating,
+          won: r.won
+        });
+        p.matches += 1;
+        if (r.won) {
+          p.wins += 1;
+        }
+        console.error(`Setting rating for ${p.name} to ${r.rating} (${r.rating - p.rating})`);
+        p.rating = r.rating;
+      });
+    }
+    console.error('#############################################################');
+    this.players.sort((a, b) => (a.rating > b.rating) ? -1 : 1);
+    if (this.historyShownFor) {
+      this.playerHistory = [...this.historyShownFor.history];
     }
   }
 
-  public calculateELO(rating1: number, rating2: number, won: boolean): number {
-    if (won) {
-      return rating1 + this.pointPot * (1 - this.calculateProbability(rating2, rating1));
+  private _test(p1: Player, p2: Player, p3: Player, p4: Player, log: boolean = false, t1won: boolean = false): Rating[] {
+    const t1elo: number = p1.rating + p2.rating;
+    const t2elo: number = p3.rating + p4.rating;
+    const p1prob: number = this.calculateProbability(p3.rating, p1.rating) * 100;
+    const p1prob2: number = this.calculateProbability(p4.rating, p1.rating) * 100;
+    const p2prob: number = this.calculateProbability(p3.rating, p2.rating) * 100;
+    const p2prob2: number = this.calculateProbability(p4.rating, p2.rating) * 100;
+    const p3prob: number = this.calculateProbability(p1.rating, p3.rating) * 100;
+    const p3prob2: number = this.calculateProbability(p2.rating, p3.rating) * 100;
+    const p4prob: number = this.calculateProbability(p1.rating, p4.rating) * 100;
+    const p4prob2: number = this.calculateProbability(p2.rating, p4.rating) * 100;
+    const t1prob: number = (p1prob + p1prob2 + p2prob + p2prob2) / 4;
+    const t2prob: number = (p3prob + p3prob2 + p4prob + p4prob2) / 4;
+    const t1winChance: number = Math.random() * 100;
+    const t1win: boolean = t1won || t1winChance >= t1prob;
+    const p1percent: number = (p1.rating, p2.rating, ((p1.rating * 100) / (p1.rating + p2.rating)));
+    const p2percent: number = (p2.rating, p1.rating, ((p2.rating * 100) / (p2.rating + p1.rating)));
+    const p3percent: number = (p3.rating, p4.rating, ((p3.rating * 100) / (p3.rating + p4.rating)));
+    const p4percent: number = (p4.rating, p3.rating, ((p4.rating * 100) / (p4.rating + p3.rating)));
+    const p1rating: number = this.calculateELO(p1.rating, p3.rating, t1prob, t1win);
+    const p1rating2: number = this.calculateELO(p1.rating, p4.rating, t1prob, t1win);
+    const p1ratingTot: number = ((((p1rating - p1.rating) + (p1rating2 - p1.rating)) * (t1win ? p2percent : p1percent)) / 100);
+    const p2rating: number = this.calculateELO(p2.rating, p3.rating, t1prob, t1win);
+    const p2rating2: number = this.calculateELO(p2.rating, p4.rating, t1prob, t1win);
+    const p2ratingTot: number = ((((p2rating - p2.rating) + (p2rating2 - p2.rating)) * (t1win ? p1percent : p2percent)) / 100);
+    const p3rating: number = this.calculateELO(p3.rating, p1.rating, t2prob, !t1win);
+    const p3rating2: number = this.calculateELO(p3.rating, p2.rating, t2prob, !t1win);
+    const p3ratingTot: number = ((((p3rating - p3.rating) + (p3rating2 - p3.rating)) * (!t1win ? p4percent : p3percent)) / 100);
+    const p4rating: number = this.calculateELO(p4.rating, p1.rating, t2prob, !t1win);
+    const p4rating2: number = this.calculateELO(p4.rating, p2.rating, t2prob, !t1win);
+    const p4ratingTot: number = ((((p4rating - p4.rating) + (p4rating2 - p4.rating)) * (!t1win ? p3percent : p4percent)) / 100);
+    if (log) {
+      console.error('#############################################################');
+      console.error(`Simulated match (#${this.matchNum++}) starting...`);
+      console.error(`Team 1: ${p1.name} (${p1.rating}) & ${p2.name} (${p2.rating}) VS Team 2: ${p3.name} (${p3.rating}) & ${p4.name} (${p4.rating})`);
+      console.error('.............................................................');
+      console.error(`Win probability for Team 1: ${t1prob} %`);
+      console.error(`Win probability for Team 2: ${t2prob} %`);
+      console.error(`${t1win ? 'TEAM 1' : 'TEAM 2'} WON ! (Luck of the draw for Team 1: ${t1winChance} VS ${t1prob} % chance for Team 1 to win)`);
+      console.error('.............................................................');
     }
 
-    return rating1 + this.pointPot * (0 - this.calculateProbability(rating2, rating1));
+    return [
+      { name: p1.name, rating: p1.rating + p1ratingTot, probability: t1prob, won: t1win },
+      { name: p2.name, rating: p2.rating + p2ratingTot, probability: t1prob, won: t1win },
+      { name: p3.name, rating: p3.rating + p3ratingTot, probability: t2prob, won: !t1win },
+      { name: p4.name, rating: p4.rating + p4ratingTot, probability: t2prob, won: !t1win }
+    ];
+  }
+
+  public calculateELO(rating1: number, rating2: number, winProbability: number, won: boolean): number {
+    if (won) {
+      return rating1 + this.pointPot * (1 - (winProbability / 100));
+      // return rating1 + this.pointPot * (1 - this.calculateProbability(rating2, rating1));
+    }
+    return rating1 + this.pointPot * (0 - (winProbability / 100));
+    // return rating1 + this.pointPot * (0 - this.calculateProbability(rating2, rating1));
   }
 
   private calculateProbability(ratingA: number, ratingB: number): number {
